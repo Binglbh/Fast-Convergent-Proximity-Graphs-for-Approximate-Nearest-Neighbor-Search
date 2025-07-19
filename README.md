@@ -60,9 +60,10 @@ cd build/tests/
 - `ALPHA_CNG_PATH` is the path to the prebuilt Alpha-CNG graph.
 - `SEARCH_L` is the beam width (queue size) used during beam search; larger values typically improve recall but increase computation.
 - `SEARCH_K` is the number of nearest neighbors to retrieve for each query.
-After execution, the program will print key search performance metrics to standard output, including:
+
+After execution, the program will print **key search performance** metrics to standard output, including:
 - Total and average **distance computations**
-- Total and average number of hops during beam search
+- Total and average number of **hops** during beam search
 - Total **elapsed time**
 - Final **Recall@k** (based on the provided ground truth)
 
