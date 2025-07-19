@@ -249,9 +249,8 @@ void IndexAlphaCNG::sync_prune(unsigned q, std::vector<Neighbor> &pool,
   SimpleNeighbor *cut_graph_) {
 unsigned range = parameter.Get<unsigned>("R");
 unsigned maxc = parameter.Get<unsigned>("C");
-// range=range*factor;
 unsigned min_degree=threshold;
-float alpha_increment = 0.05;  // 每次调整 alpha 的增量
+float alpha_increment = 0.05;  // alpha step
 float max_alpha=1.6;
 width = range;
 float current_alpha = alpha;
@@ -261,8 +260,8 @@ float current_alpha = alpha;
 // size_t distance_cache_miss = 0;
 
 unsigned start = 0;
-std::vector<float> dist_cache(maxc * maxc, -1.0f);  // 缓存 pool 内 pairwise 距离
-std::vector<int> result_pool_indices;                       // result[i] 对应在 pool 中的 index
+std::vector<float> dist_cache(maxc * maxc, -1.0f);  // pairwise distance cache 
+std::vector<int> result_pool_indices;                       // index in result
 
 for (unsigned nn = 0; nn < final_graph_[q].size(); nn++) {
 unsigned id = final_graph_[q][nn];
@@ -279,30 +278,17 @@ std::vector<Neighbor> result;
 if (pool[start].id == q) start++;
 result.push_back(pool[start]);
 result_pool_indices.push_back(start);
-  // Step 2: 初始 alpha 下执行 pruning
   while (result.size() < range && ++start < pool.size() && start < maxc) {
     auto &p = pool[start];
     bool occlude = false;
-    // float th1=(current_alpha + 1) * tau;
-    // if (p.distance < th1) {
-    //   // 如果当前点距离小于 (alpha + 1) * tau，则直接加入结果集
-    //   result.push_back(p);
-    //   result_pool_indices.push_back(start);
-    //   continue;
-    // }
+
     float th2=(current_alpha-1)*p.distance/current_alpha+((current_alpha+1)/current_alpha)*tau;
     for (size_t t = 0; t < result.size(); ++t) {
       if (p.id == result[t].id) {
         occlude = true;
         break;
       }
-      // if (result[t].distance <th1){
-      //   continue;
-      // }
-      // if (result[t].distance < th2)
-      // {
-      //   continue;
-      // }
+
       int i = result_pool_indices[t];
       int j = start;
       if (i > j) std::swap(i, j);
@@ -337,36 +323,22 @@ result_pool_indices.push_back(start);
   while (result.size() < min_degree && current_alpha < max_alpha) {
     current_alpha += alpha_increment;
     result.clear();
-    // result_pool_indices 不 clear，只重新填充
     start = 0;
     if (pool[start].id == q) start++;
     result.push_back(pool[start]);
     result_pool_indices.resize(1);
     result_pool_indices[0] = start;
-    // float th1=(current_alpha + 1) * tau;
     while (result.size() < range && ++start < pool.size() && start < maxc) {
       auto &p = pool[start];
       bool occlude = false;
-      // if (p.distance < th1) {
-      //   // 如果当前点距离小于 (alpha + 1) * tau，则直接加入结果集
-      //   result.push_back(p);
-      //   result_pool_indices.push_back(start);
-      //   continue;
-      // }
+
       float th2=(current_alpha-1)*p.distance/current_alpha+((current_alpha+1)/current_alpha)*tau;
       for (size_t t = 0; t < result.size(); ++t) {
         if (p.id == result[t].id) {
           occlude = true;
           break;
         }
-        // if (result[t].distance < th1){
-        //   continue;
-        // }
 
-        // if (result[t].distance < th2)
-        // {
-        //   continue;
-        // }
         int i = result_pool_indices[t];
         int j = start;
         if (i > j) std::swap(i, j);
@@ -398,7 +370,6 @@ result_pool_indices.push_back(start);
     }
   }
 
-  // Step 4: 写入最终剪枝结果
   SimpleNeighbor *des_pool = cut_graph_ + (size_t)q * (size_t)range;
   for (size_t t = 0; t < result.size(); ++t) {
     des_pool[t].id = result[t].id;
@@ -420,92 +391,6 @@ result_pool_indices.push_back(start);
   }
 }
 
-// void IndexAlphaCNG::InterInsert(unsigned n, unsigned range,
-//    std::vector<std::mutex> &locks,
-//    SimpleNeighbor *cut_graph_) {
-// // static size_t interinsert_distance_computations = 0;
-// // static size_t escape_distance_computations = 0;
-// unsigned min_degree=threshold;
-// SimpleNeighbor *src_pool = cut_graph_ + (size_t)n * (size_t)range;
-// for (size_t i = 0; i < range; i++) {
-// if (src_pool[i].distance == -1) break;
-
-// SimpleNeighbor sn(n, src_pool[i].distance);
-// size_t des = src_pool[i].id;
-// SimpleNeighbor *des_pool = cut_graph_ + des * (size_t)range;
-
-// std::vector<SimpleNeighbor> temp_pool;
-// int dup = 0;
-// {
-// LockGuard guard(locks[des]);
-// for (size_t j = 0; j < range; j++) {
-// if (des_pool[j].distance == -1) break;
-// if (n == des_pool[j].id) {
-// dup = 1;
-// break;
-// }
-// temp_pool.push_back(des_pool[j]);
-// }
-// }
-// if (dup) continue;
-
-// temp_pool.push_back(sn);
-// if (temp_pool.size() > range) {
-// std::vector<SimpleNeighbor> result;
-
-// unsigned start = 0;
-// float current_alpha = final_alpha_[des];  // 使用初始 alpha
-// std::sort(temp_pool.begin(), temp_pool.end());
-// bool sn_pruned = false;
-
-// while (result.size() < range && (++start) < temp_pool.size() && !sn_pruned) {
-//   auto &p = temp_pool[start];
-//   if (p.id == n) continue;
-
-//   float djk = distance_->compare(data_ + dimension_ * n,
-//                             data_ + dimension_ * p.id,
-//                             dimension_);
-//   if (p.distance < sn.distance) {
-//     result.push_back(p);
-//     if (sn.distance > current_alpha * djk + (current_alpha + 1) * tau) {
-//       sn_pruned = true;
-//       break;
-//     }
-//   }else {
-//     // 判断 sn 是否能剪掉 v
-//     if (p.distance > current_alpha * djk + (current_alpha + 1) * tau) {
-//       continue;
-//     } else {
-//       result.push_back(p);
-//     }
-//   }
-// }
-// if (sn_pruned){
-//   while (result.size() < range && start < temp_pool.size()) {
-//     auto& p = temp_pool[start++];
-//     if (p.id == n) continue;
-//     result.push_back(p);
-//   }
-// }
-// {
-// // unsigned limit = std::min((unsigned)result.size(), range);
-// LockGuard guard(locks[des]);
-// for (unsigned t = 0; t < result.size(); t++) {
-// des_pool[t] = result[t];
-// }
-// }
-// } else {
-// LockGuard guard(locks[des]);
-// for (unsigned t = 0; t < range; t++) {
-// if (des_pool[t].distance == -1) {
-// des_pool[t] = sn;
-// if (t + 1 < range) des_pool[t + 1].distance = -1;
-// break;
-// }
-// }
-// }
-// }
-// }
 
 void IndexAlphaCNG::InterInsert(unsigned n, unsigned range,
   std::vector<std::vector<SimpleNeighbor>> &reverse_buffer,
@@ -520,7 +405,6 @@ void IndexAlphaCNG::InterInsert(unsigned n, unsigned range,
     float dist = src_pool[i].distance;
     SimpleNeighbor sn(n, dist);
 
-    // 反向插入 reverse_buffer[des]，加锁保护
     {
       LockGuard guard(locks[des]);
       reverse_buffer[des].emplace_back(sn);
@@ -543,8 +427,8 @@ void IndexAlphaCNG::PruneReverseEdges(unsigned n, unsigned range,
     std::vector<float> dist_cache(temp_pool.size() * temp_pool.size(), -1.0f);
     
     unsigned start = 0;
-    float current_alpha = alpha;  // 使用初始 alpha
-    float alpha_increment = 0.1; // 增量
+    float current_alpha = alpha;  // init alpha
+    float alpha_increment = 0.1; // alpha step
     float max_alpha=1.6;
     std::sort(temp_pool.begin(), temp_pool.end());
     result.push_back(temp_pool[start]);
@@ -552,26 +436,13 @@ void IndexAlphaCNG::PruneReverseEdges(unsigned n, unsigned range,
     while (result.size() < range && (++start) < temp_pool.size()) {
     auto &p = temp_pool[start];
     bool occlude = false;
-    // float th1=(current_alpha + 1) * tau;
-    // if (p.distance < th1) {
-    //   result.push_back(p);
-    //   result_pool_indices.push_back(start);
-    //   // escape_distance_computations=escape_distance_computations+result.size();
-    //   continue;
-    // }
-    // float th2=(current_alpha-1)*p.distance/current_alpha+((current_alpha+1)/current_alpha)*tau;
+
     for (size_t t = 0; t < result.size(); ++t) {
       if (p.id == result[t].id) {
         occlude = true;
         break;
         }
-        // if (result[t].distance < th1){
-        //   continue;
-        // }
-        // if (result[t].distance < th2)
-        // {
-        //   continue;
-        // }
+   
       int i = result_pool_indices[t];
       int j = start;
       if (i > j) std::swap(i, j);
@@ -582,7 +453,6 @@ void IndexAlphaCNG::PruneReverseEdges(unsigned n, unsigned range,
         djk = distance_->compare(data_ + dimension_ * result[t].id,
                                 data_ + dimension_ * p.id,
                                 dimension_);
-        // ++interinsert_distance_computations;
         dist_cache[idx] = djk;
       }
     
@@ -596,40 +466,27 @@ void IndexAlphaCNG::PruneReverseEdges(unsigned n, unsigned range,
       }
     }
     }
-    // 检查是否需要调整 alpha
+    
     while (result.size() < range && current_alpha < max_alpha) {
-    current_alpha += alpha_increment;  // 增加 alpha
-    result.clear();                    // 清空结果
+    current_alpha += alpha_increment;  
+    result.clear();                    
     result_pool_indices.clear();
     
-    start = 0;                         // 重置开始位置
+    start = 0;                         
     
-    // 再次筛选一次
     result.push_back(temp_pool[start]);
     result_pool_indices.push_back(start);
     while (result.size() < range && (++start) < temp_pool.size()) {
     auto &p = temp_pool[start];
     bool occlude = false;
-    // float th1=(current_alpha + 1) * tau;
-    // if (p.distance < th1) {
-    //   result.push_back(p);
-    //   result_pool_indices.push_back(start);
-    //   // escape_distance_computations=escape_distance_computations+result.size();
-    //   continue;
-    // } 
+
     float th2=(current_alpha-1)*p.distance/current_alpha+((current_alpha+1)/current_alpha)*tau;
     for (size_t t = 0; t < result.size(); ++t) {
       if (p.id == result[t].id) {
         occlude = true;
         break;
         }
-        // if (result[t].distance < th1){
-        //   continue;
-        // }
-        // if (result[t].distance < th2)
-        // {
-        //   continue;
-        // }
+  
       int i = result_pool_indices[t];
       int j = start;
       if (i > j) std::swap(i, j);
@@ -640,7 +497,6 @@ void IndexAlphaCNG::PruneReverseEdges(unsigned n, unsigned range,
         djk = distance_->compare(data_ + dimension_ * result[t].id,
                                 data_ + dimension_ * p.id,
                                 dimension_);
-        // ++interinsert_distance_computations;
         dist_cache[idx] = djk;
       }
     
@@ -677,17 +533,13 @@ void IndexAlphaCNG::PruneReverseEdges(unsigned n, unsigned range,
 void IndexAlphaCNG::Link(const Parameters &parameters, SimpleNeighbor *cut_graph_) {
   
   unsigned range = parameters.Get<unsigned>("R");
-  // range=range*factor;
   std::vector<std::mutex> locks(nd_);
   final_alpha_.resize(nd_, -1.0f); 
   double start_time1, end_time1, start_time2, end_time2;
-  // reverse_inserts.clear();  // 清空原有数据
-  // std::vector<std::atomic<unsigned>> reverse_inserts(nd_);
+
   std::vector<std::vector<SimpleNeighbor>> reverse_buffer(nd_);
 
-  // for (size_t i = 0; i < nd_; ++i) {
-  //     reverse_inserts[i]=0;
-  // }
+
   start_time1 = omp_get_wtime();
     double total_time_neighbors = 0.0;
   double total_time_prune = 0.0;
@@ -703,12 +555,10 @@ for (unsigned n = 0; n < nd_; ++n) {
   tmp.clear();
   flags.reset();
 
-  // 记录 get_neighbors 执行时间
   double start_time_neighbors = omp_get_wtime();
   get_neighbors(data_ + dimension_ * n, parameters, flags, tmp, pool);
   double end_time_neighbors = omp_get_wtime();
   
-  // 记录 sync_prune 执行时间
   double start_time_prune = omp_get_wtime();
   sync_prune(n, pool, parameters, flags, cut_graph_);
   double end_time_prune = omp_get_wtime();
@@ -720,13 +570,11 @@ for (unsigned n = 0; n < nd_; ++n) {
   
 
   }
-// 记录 Prune 执行时间
 end_time1 = omp_get_wtime();
 std::cout << "Total get_neighbors execution time: " << total_time_neighbors << " seconds" << std::endl;
 std::cout << "Total sync_prune execution time: " << total_time_prune << " seconds" << std::endl;
 std::cout << "Prune execution time: " << (end_time1 - start_time1) << " seconds" << std::endl;
 
-  // 记录 InterInsert 代码块的时间
   start_time2 = omp_get_wtime();
 
 #pragma omp parallel
@@ -748,34 +596,6 @@ std::cout << "Prune execution time: " << (end_time1 - start_time1) << " seconds"
   end_time2 = omp_get_wtime();
   std::cout << "InterInsert execution time: " << (end_time2 - start_time2) << " seconds" << std::endl;
 
-  //   // 拷贝值到 std::vector<unsigned>
-  // std::vector<unsigned> insert_counts(nd_);
-  // for (unsigned i = 0; i < nd_; ++i) {
-  //     insert_counts[i] = reverse_inserts[i];  // 若是 std::atomic，自动隐式转换
-  // }
-
-  // // 排序
-  // std::sort(insert_counts.begin(), insert_counts.end());
-
-  // // 分位位置
-  // auto get_percentile = [&](double percent) -> unsigned {
-  //     size_t idx = static_cast<size_t>(percent * nd_);
-  //     if (idx >= nd_) idx = nd_ - 1;
-  //     return insert_counts[idx];
-  // };
-
-  // unsigned min_rev = insert_counts.front();
-  // unsigned max_rev = insert_counts.back();
-  // unsigned p25 = get_percentile(0.25);
-  // unsigned p50 = get_percentile(0.50);  // 中位数
-  // unsigned p75 = get_percentile(0.75);
-
-  // // 输出结果
-  // std::cout << "[Stat] Reverse Insert Count Stats\n";
-  // std::cout << "  Min: " << min_rev << ", Max: " << max_rev << "\n";
-  // std::cout << "  25% points have ≤ " << p25 << " insertions\n";
-  // std::cout << "  50% points have ≤ " << p50 << " insertions (median)\n";
-  // std::cout << "  75% points have ≤ " << p75 << " insertions\n";
 }
 
 void IndexAlphaCNG::Build(size_t n, const float *data, const Parameters &parameters) {
@@ -785,8 +605,7 @@ void IndexAlphaCNG::Build(size_t n, const float *data, const Parameters &paramet
 
   std::cout << "tau = " << tau << std::endl;
   std::cout << "alpha = " << alpha << std::endl;
-  // size_t factor=30;
-  // range=range*factor;
+
   data_ = data;
   init_graph(parameters);
   SimpleNeighbor *cut_graph_ = new SimpleNeighbor[nd_ * (size_t)range];
@@ -862,7 +681,6 @@ void IndexAlphaCNG::DFS(boost::dynamic_bitset<> &flag, unsigned root, unsigned &
         break;
       }
     }
-    // std::cout << next <<":"<<cnt <<":"<<tmp <<":"<<s.size()<< '\n';
     if (next == (nd_ + 1)) {
       s.pop();
       if (s.empty()) break;
@@ -882,8 +700,7 @@ void IndexAlphaCNG::Search(const float *query, const float *x, size_t K,
   std::vector<Neighbor> retset(L + 1);
   std::vector<unsigned> init_ids(L);
   boost::dynamic_bitset<> flags{nd_, 0};
-  // std::mt19937 rng(rand());
-  // GenRandom(rng, init_ids.data(), L, (unsigned) nd_);
+
 
   unsigned tmp_l = 0;
   for (; tmp_l < L && tmp_l < final_graph_[ep_].size(); tmp_l++) {
@@ -953,7 +770,6 @@ void IndexAlphaCNG::Search_(const float *query, const float *x, size_t K,
     std::vector<Neighbor> retset(L + 1);
     std::vector<unsigned> init_ids(L);
     boost::dynamic_bitset<> flags{nd_, 0};
-    // float kperc = parameters.Get<float>("kperc");
   
   
   
@@ -969,9 +785,6 @@ void IndexAlphaCNG::Search_(const float *query, const float *x, size_t K,
   
     for (unsigned i = tmp_l; i < init_ids.size(); i++) {
       unsigned id = init_ids[i];
-      // float dist = distance_->compare_by_loop(data_ + dimension_ * id, query, (unsigned)dimension_);
-      // NDC++;
-      // retset[i] = Neighbor(id, dist, true);
       retset[i] = Neighbor(-1, 100000000.0, false);
     }
   
