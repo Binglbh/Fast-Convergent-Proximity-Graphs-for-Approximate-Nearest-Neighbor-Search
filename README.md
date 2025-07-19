@@ -74,7 +74,7 @@ The construction process involves two stages:
 We used [EFANNA](https://github.com/ZJULearning/efanna_graph) to construct 200-NN graphs for all datasets. Specifically, the parameters used to construct approximate KNN graph are as follows: `K = 200, L = 200, iter = 10, S = 10, R = 100`.For the detailed explanation of these parameters, please refer to the original [EFANNA documentation](https://github.com/ZJULearning/efanna_graph).
 
 ### Alpha-CNG Construction Parameters
-In all experiments, we use the following adaptive pruning configuration: `alpha_0 = 0.9`, `alpha_step = 0.05`, `alpha_max = 1.6`
+In all experiments, we use the following adaptive pruning configuration: `alpha_0 = 0.9`, `alpha_step = 0.05`, `alpha_max = 1.6`, `T=R/2`
 The following table summarizes the construction parameters (`tau`, `L`, `R`, and `C`) used for each dataset:
 | Dataset    | Tau | L   | R   | C   |
 |------------|-----|-----|-----|-----|
