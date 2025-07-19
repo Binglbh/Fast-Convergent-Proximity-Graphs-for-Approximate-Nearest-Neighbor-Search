@@ -457,10 +457,10 @@ void IndexAlphaCNG::PruneReverseEdges(unsigned n, unsigned range,
         occlude = true;
         break;
       }
-      if (!occlude) {
-        result.push_back(p);
-        result_pool_indices.push_back(start);
-      }
+    }
+    if (!occlude) {
+      result.push_back(p);
+      result_pool_indices.push_back(start);
     }
     }
     
@@ -501,10 +501,10 @@ void IndexAlphaCNG::PruneReverseEdges(unsigned n, unsigned range,
         break;
       }
     }
-      if (!occlude) {
-        result.push_back(p);
-        result_pool_indices.push_back(start);
-      }
+    if (!occlude) {
+      result.push_back(p);
+      result_pool_indices.push_back(start);
+    }
     }
     }
     {
