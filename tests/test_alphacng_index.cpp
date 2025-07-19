@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
   std::chrono::duration<double> diff = e - s;
 
   std::cout << "indexing time: " << diff.count() << "\n";
-  index.Save(argv[9]);
+  index.Save(argv[11]);
 
   return 0;
 }
