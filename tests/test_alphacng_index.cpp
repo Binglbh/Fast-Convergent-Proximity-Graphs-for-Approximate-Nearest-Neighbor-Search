@@ -54,6 +54,8 @@ int main(int argc, char** argv) {
 
   index.alpha = alpha;
   index.tau = tau;
+  index.alpha_step= alpha_step;
+  index.alpha_max=alpha_max;
   index.threshold=T;
   index.Build(points_num, data_load, paras);
   auto e = std::chrono::high_resolution_clock::now();

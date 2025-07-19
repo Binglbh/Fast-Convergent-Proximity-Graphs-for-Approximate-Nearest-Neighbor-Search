@@ -282,7 +282,6 @@ result_pool_indices.push_back(start);
     auto &p = pool[start];
     bool occlude = false;
 
-    float th2=(current_alpha-1)*p.distance/current_alpha+((current_alpha+1)/current_alpha)*tau;
     for (size_t t = 0; t < result.size(); ++t) {
       if (p.id == result[t].id) {
         occlude = true;
@@ -331,8 +330,6 @@ result_pool_indices.push_back(start);
     while (result.size() < range && ++start < pool.size() && start < maxc) {
       auto &p = pool[start];
       bool occlude = false;
-
-      float th2=(current_alpha-1)*p.distance/current_alpha+((current_alpha+1)/current_alpha)*tau;
       for (size_t t = 0; t < result.size(); ++t) {
         if (p.id == result[t].id) {
           occlude = true;
@@ -382,7 +379,7 @@ result_pool_indices.push_back(start);
   if (q % 10000 == 0) {
     std::cout << "[DEBUG] q = " << q
               << ", final alpha = " << current_alpha
-              << ", result.size() = " << result.size()<< "%\n";
+              << ", result.size() = " << result.size()<< "\n";
               // << ", distance computations = " << distance_computations
               // << ", cache hit = " << distance_cache_hit
               // << ", cache miss = " << distance_cache_miss
@@ -480,7 +477,6 @@ void IndexAlphaCNG::PruneReverseEdges(unsigned n, unsigned range,
     auto &p = temp_pool[start];
     bool occlude = false;
 
-    float th2=(current_alpha-1)*p.distance/current_alpha+((current_alpha+1)/current_alpha)*tau;
     for (size_t t = 0; t < result.size(); ++t) {
       if (p.id == result[t].id) {
         occlude = true;
