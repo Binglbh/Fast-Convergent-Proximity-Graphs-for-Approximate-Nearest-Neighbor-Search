@@ -112,7 +112,7 @@ make -j
 
 # Note: Replace "/path/to/..." with your actual file paths
 cd tests
-./test_alphacng_index  /path/to/gist_base.fvecs /path/to/gist_200nn.graph 60 70 500 0.9 0.05 1.6 0.04 35  gist_alphaCNG.graph 
+./test_alphacng_index  /path/to/gist_base.fvecs /path/to/gist_200nn.graph 60 70 500 0.9 0.05 1.6 0.06 35  gist_alphaCNG.graph 
 
 # === Step 4: Run Beam Search on Alpha-CNG ===
 # Note: Replace "/path/to/..." with your actual file paths
