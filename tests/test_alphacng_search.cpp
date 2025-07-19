@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
   }
 
   efanna2e::IndexAlphaCNG index(dim, points_num, efanna2e::L2, nullptr);
-  index.Load(argv[2]);
+  index.Load(argv[4]);
   efanna2e::Parameters paras;
   paras.Set<unsigned>("L_search", L);
 
