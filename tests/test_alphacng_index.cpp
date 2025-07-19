@@ -24,7 +24,7 @@ void load_data(char* filename, float*& data, unsigned& num,
 }
 
 int main(int argc, char** argv) {
-  if (argc != 10) {
+  if (argc != 12) {
     std::cout << argv[0] << " data_file nn_graph_path L R C alpha_start alpha_step alpha_max tau T save_graph_file "
               << std::endl;
     exit(-1);
