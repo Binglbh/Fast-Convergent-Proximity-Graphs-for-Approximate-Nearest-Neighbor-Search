@@ -101,7 +101,6 @@ void Search_(const float *query, const float *x, size_t K,
     KNNGraph nnd_graph;
 
   public:
-    size_t factor=30;
     std::vector<std::vector<float> > final_graph_edge_length_;
     // std::vector<std::atomic<unsigned>> reverse_inserts;
     double NDC;

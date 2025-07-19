@@ -25,7 +25,7 @@ void load_data(char* filename, float*& data, unsigned& num,
 
 int main(int argc, char** argv) {
   if (argc != 10) {
-    std::cout << argv[0] << " data_file nn_graph_path L R C alpha tau T save_graph_file "
+    std::cout << argv[0] << " data_file nn_graph_path L R C alpha_start alpha_step alpha_max tau T save_graph_file "
               << std::endl;
     exit(-1);
   }
@@ -38,8 +38,10 @@ int main(int argc, char** argv) {
   unsigned R = (unsigned)atoi(argv[4]);
   unsigned C = (unsigned)atoi(argv[5]);
   float alpha = atof(argv[6]);
-  float tau = atof(argv[7]);
-  float T = atof(argv[8]);
+  float alpha_step = atof(argv[7]);
+  float alpha_max = atof(argv[8]);
+  float tau = atof(argv[9]);
+  float T = atof(argv[10]);
 
   efanna2e::IndexAlphaCNG index(dim, points_num, efanna2e::L2, nullptr);
 
