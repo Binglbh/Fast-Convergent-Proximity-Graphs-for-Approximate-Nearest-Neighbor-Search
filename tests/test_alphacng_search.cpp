@@ -71,7 +71,7 @@ std::vector<std::vector<int> > load_ground_truth(const char* filename) {
 
 
 int main(int argc, char** argv) {
-  if (argc != 8) {
+  if (argc != 7) {
     std::cout << argv[0]
               << " data_file query_file gt_file AlphaCNG_path search_L search_K"
               << std::endl;
