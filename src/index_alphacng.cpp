@@ -250,8 +250,8 @@ void IndexAlphaCNG::sync_prune(unsigned q, std::vector<Neighbor> &pool,
 unsigned range = parameter.Get<unsigned>("R");
 unsigned maxc = parameter.Get<unsigned>("C");
 unsigned min_degree=threshold;
-float alpha_increment = 0.05;  // alpha step
-float max_alpha=1.6;
+float alpha_increment = alpha_step;  
+float max_alpha=alpha_max;
 width = range;
 float current_alpha = alpha;
 
@@ -428,8 +428,8 @@ void IndexAlphaCNG::PruneReverseEdges(unsigned n, unsigned range,
     
     unsigned start = 0;
     float current_alpha = alpha;  // init alpha
-    float alpha_increment = 0.1; // alpha step
-    float max_alpha=1.6;
+    float alpha_increment = alpha_step; // alpha step
+    float max_alpha=alpha_max;
     std::sort(temp_pool.begin(), temp_pool.end());
     result.push_back(temp_pool[start]);
     result_pool_indices.push_back(start);
@@ -759,10 +759,7 @@ void IndexAlphaCNG::Search_(const float *query, const float *x, size_t K,
   const Parameters &parameters, unsigned *indices,
   int gtNN, unsigned &query_iterations, unsigned &query_computations) {
     const unsigned L = parameters.Get<unsigned>("L_search");
-    unsigned stopL = parameters.Get<unsigned>("stopL");
-    if (stopL > L) {
-      stopL = L;
-    }
+    unsigned stopL = L;
     // bool all_visited = true;
     // bool has_unvisited_neighbors = false;
   

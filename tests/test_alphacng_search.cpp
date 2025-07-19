@@ -73,7 +73,7 @@ std::vector<std::vector<int> > load_ground_truth(const char* filename) {
 int main(int argc, char** argv) {
   if (argc != 8) {
     std::cout << argv[0]
-              << " data_file query_file gt_file AlphaCNG_path search_L search_K stopL"
+              << " data_file query_file gt_file AlphaCNG_path search_L search_K"
               << std::endl;
     exit(-1);
   }
@@ -84,7 +84,6 @@ int main(int argc, char** argv) {
   std::string graph_file = argv[4];
   unsigned L = (unsigned)atoi(argv[5]);
   unsigned K = (unsigned)atoi(argv[6]);
-  unsigned stopL = (unsigned)atoi(argv[7]);
 
   float* data_load = NULL;
   unsigned points_num, dim;
@@ -104,7 +103,6 @@ int main(int argc, char** argv) {
   index.Load(argv[2]);
   efanna2e::Parameters paras;
   paras.Set<unsigned>("L_search", L);
-  paras.Set<unsigned>("stopL", stopL);
 
   std::vector<std::vector<int> > gts = load_ground_truth(gtFileName.c_str());
 
@@ -116,6 +114,7 @@ int main(int argc, char** argv) {
 
   int qcnt = 0;
   int total_computations=0;
+  int total_iterations=0;
   for (unsigned i = 0; i < query_num; i++) {
 
     std::vector<unsigned> tmp(K);
@@ -126,6 +125,7 @@ int main(int argc, char** argv) {
     res.push_back(tmp);
     float query_recall = index.eval_recall({tmp}, {gts[i]}, K);
     total_computations=total_computations+query_computations;
+    total_iterations=total_iterations+query_iterations;
     recalls.push_back(query_recall);
     iterations.push_back(query_iterations);
     computations.push_back(query_computations);
@@ -137,6 +137,9 @@ int main(int argc, char** argv) {
 
   std::cout << "Elapsed time: " << diff.count() << " seconds." << std::endl;
   std::cout << "Total computations: " << total_computations << std::endl;
+  std::cout << "Total iterations: " << total_iterations << std::endl;
+  std::cout << "Average computations per query: " << (float)total_computations / qcnt << std::endl;
+  std::cout << "Average iterations per query: " << (float)total_iterations / qcnt << std::endl;
 
   float recall = index.eval_recall(res, gts, K);
   std::cout << "recall " << recall << std::endl;

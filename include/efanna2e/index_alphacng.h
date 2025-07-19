@@ -107,6 +107,8 @@ void Search_(const float *query, const float *x, size_t K,
     double NDC;
     int hops;
     float alpha;
+    float alpha_step;
+    float alpha_max;
     float avg_tau;
     std::vector<float> final_alpha_;
     double comp_amount;
