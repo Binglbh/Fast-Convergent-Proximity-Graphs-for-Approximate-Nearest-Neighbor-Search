@@ -87,7 +87,7 @@ The following table summarizes the construction parameters (`tau`, `L`, `R`, and
 | DEEP100M       | 0.04   | 100  | 100  | 500 |
 | BIGANN100M       | 10   | 80  | 100  | 500 |
 
-### Example: Run Alpha-CNG on GIST Dataset
+## Example: Run Alpha-CNG on GIST Dataset
 This section walks through a full example of running $\alpha$-CNG on the GIST dataset. 
 ```bash
 # === Step 1: Download and Extract GIST Dataset ===
